@@ -220,6 +220,16 @@
     .editor { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow); }
     .tabs { display: flex; overflow-x: auto; scrollbar-width: none; background: var(--surface-0); position: relative; }
     .tabs::-webkit-scrollbar { display: none; }
+    .tabbar { position: relative; }
+    .tab-arrow {
+      position: absolute; top: 0; bottom: 1px; width: 46px; z-index: 2; display: none; align-items: center;
+      border: 0; padding: 0 9px; color: var(--text-2); cursor: pointer;
+    }
+    .tab-arrow.l { left: 0; justify-content: flex-start; background: linear-gradient(90deg, var(--surface-0) 50%, transparent); }
+    .tab-arrow.r { right: 0; justify-content: flex-end; background: linear-gradient(270deg, var(--surface-0) 50%, transparent); }
+    .tab-arrow.show { display: flex; }
+    .tab-arrow:hover { color: var(--text); }
+    .tab-arrow .i { width: 18px; height: 18px; stroke-width: 2.2; }
     .tabs::after { content: ''; flex: 1 0 12px; border-bottom: 1px solid var(--line); }
     .tab {
       flex: none; display: flex; align-items: center; gap: 7px; padding: 11px 13px 10px;
@@ -585,7 +595,11 @@
     <section class="cell" id="cell"></section>
 
     <section class="editor">
-      <div class="tabs" id="tabs" role="tablist" aria-label="Practice modes"></div>
+      <div class="tabbar">
+        <button class="tab-arrow l" id="tabs-l" data-action="tabs-left" aria-label="Scroll tabs left" tabindex="-1"></button>
+        <div class="tabs" id="tabs" role="tablist" aria-label="Practice modes"></div>
+        <button class="tab-arrow r" id="tabs-r" data-action="tabs-right" aria-label="Scroll tabs right" tabindex="-1"></button>
+      </div>
       <div class="pane" id="pane">
         <div style="text-align:center;padding:40px 12px">
           <h2 style="font-size:1.2rem;margin-bottom:8px">This preview can't run the app</h2>
@@ -601,7 +615,7 @@
 
   <script>
     // Bump on every release; the app compares this with the website to offer updates.
-    const APP_VERSION = 2;
+    const APP_VERSION = 3;
     const STORE_KEY = 'glitch_ml_v1';
     // Service workers need https; localhost is allowed too so offline mode can be tested locally.
     const canGoOffline = location.protocol === 'https:' || location.hostname === 'localhost';
@@ -2708,6 +2722,7 @@
         document.addEventListener('click', e => this.onClick(e));
         document.addEventListener('keydown', e => this.onKey(e));
         document.addEventListener('input', e => this.onInput(e));
+        this.initTabScroll();
         this.renderAll();
         this.renderInstallBtn();
         $('#settings-btn').innerHTML = icon('sliders');
@@ -2809,6 +2824,33 @@
         if (on && (on.offsetLeft < tabs.scrollLeft || on.offsetLeft + on.offsetWidth > tabs.scrollLeft + tabs.clientWidth)) {
           tabs.scrollLeft = on.offsetLeft - (tabs.clientWidth - on.offsetWidth) / 2;
         }
+        this.updateTabArrows();
+      },
+      // The tab strip scrolls sideways: arrows for mouse users, and the mouse wheel scrolls it too.
+      initTabScroll() {
+        const tabs = $('#tabs');
+        $('#tabs-l').innerHTML = icon('left');
+        $('#tabs-r').innerHTML = icon('right');
+        tabs.addEventListener('scroll', () => this.updateTabArrows(), { passive: true });
+        window.addEventListener('resize', () => this.updateTabArrows());
+        tabs.addEventListener('wheel', e => {
+          if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;   // trackpads already scroll sideways
+          const max = tabs.scrollWidth - tabs.clientWidth;
+          if (max <= 0) return;
+          // At either end, let the wheel scroll the page as usual.
+          if ((e.deltaY < 0 && tabs.scrollLeft <= 0) || (e.deltaY > 0 && tabs.scrollLeft >= max - 1)) return;
+          e.preventDefault();
+          tabs.scrollLeft += e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+        }, { passive: false });
+      },
+      updateTabArrows() {
+        const tabs = $('#tabs'), max = tabs.scrollWidth - tabs.clientWidth;
+        $('#tabs-l').classList.toggle('show', tabs.scrollLeft > 2);
+        $('#tabs-r').classList.toggle('show', tabs.scrollLeft < max - 2);
+      },
+      scrollTabs(dir) {
+        const tabs = $('#tabs');
+        tabs.scrollBy({ left: dir * tabs.clientWidth * 0.7, behavior: 'smooth' });
       },
       renderStatus() {
         const m = this.mode(), ch = this.ch(), r = this.run();
@@ -3403,6 +3445,8 @@
         'ch-prev'() { const c = this.ch(); if (c.idx > 0) this.setChapter(this.track().chapters[c.idx - 1].id); },
         'ch-next'() { const c = this.ch(), t = this.track(); if (c.idx < t.chapters.length - 1) this.setChapter(t.chapters[c.idx + 1].id); },
         chapters() { this.openChapters(); },
+        'tabs-left'() { this.scrollTabs(-1); },
+        'tabs-right'() { this.scrollTabs(1); },
         mode(el) { this.setMode(el.dataset.mode); if (el.classList.contains('shortcut') || el.closest('.actions')) this.scrollPaneIntoView(); },
 
         'learn-prev'() { this.learnGo(this.learnI - 1); },
