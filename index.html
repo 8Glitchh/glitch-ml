@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Glitch ML</title>
   <meta name="description" content="Learn to code machine learning: NumPy, pandas, scikit-learn and PyTorch. Short lessons, code puzzles and tests.">
+  <meta name="author" content="Ahmed Hashash">
   <meta name="theme-color" content="#0a0a12">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -522,8 +523,9 @@
     .update-bar button { border: 0; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 8px 14px; border-radius: 99px; cursor: pointer; }
 
     .foot { text-align: center; margin-top: 18px; }
-    .foot button { background: none; border: 0; cursor: pointer; font: 0.74rem var(--mono); color: var(--text-3); padding: 6px; }
+    .foot button { display: inline-grid; gap: 2px; background: none; border: 0; cursor: pointer; font: 0.74rem var(--mono); color: var(--text-3); padding: 6px; }
     .foot button:hover { color: var(--text-2); }
+    .foot .by { font-size: 0.62rem; opacity: 0.4; }
 
     @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
@@ -599,7 +601,7 @@
 
   <script>
     // Bump on every release; the app compares this with the website to offer updates.
-    const APP_VERSION = 1;
+    const APP_VERSION = 2;
     const STORE_KEY = 'glitch_ml_v1';
 
     /* ================= Helpers ================= */
@@ -2707,7 +2709,7 @@
         this.renderAll();
         this.renderInstallBtn();
         $('#settings-btn').innerHTML = icon('sliders');
-        $('#foot').textContent = `glitch.ml · v${APP_VERSION} · lessons & questions written with AI`;
+        $('#foot').innerHTML = `<span>glitch.ml v${APP_VERSION} · lessons &amp; questions written with AI</span><span class="by">made by Ahmed Hashash</span>`;
       },
 
       /* ---------- state ---------- */
@@ -3536,6 +3538,7 @@
             <p class="small muted">Lessons and questions were written with AI. The code follows NumPy, pandas 2, scikit-learn 1.4+ and PyTorch 2. If something looks off, the library's own docs win.</p>
             <p class="small muted" style="margin-top:8px">Want to run the code for real? <a href="https://colab.research.google.com/" target="_blank" rel="noopener">Google Colab</a> runs Python with all of these libraries in your browser for free.</p>
             <p class="small muted" style="margin-top:8px">Your progress is saved on this device only. Use Settings → Back up to move it.</p>
+            <p style="margin-top:14px;font-size:0.7rem;color:var(--text-3);opacity:0.5">Made by Ahmed Hashash</p>
           </div>`);
       },
       openSettings(still) {
