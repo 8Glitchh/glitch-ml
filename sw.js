@@ -25,7 +25,10 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
+  // The app's "is there a newer version?" check must reach the website, not this cache.
+  if (url.searchParams.has('v')) return;
 
   // Pages: try the network (so updates arrive), fall back to the cached app when offline.
   if (req.mode === 'navigate') {

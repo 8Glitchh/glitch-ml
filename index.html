@@ -603,6 +603,8 @@
     // Bump on every release; the app compares this with the website to offer updates.
     const APP_VERSION = 2;
     const STORE_KEY = 'glitch_ml_v1';
+    // Service workers need https; localhost is allowed too so offline mode can be tested locally.
+    const canGoOffline = location.protocol === 'https:' || location.hostname === 'localhost';
 
     /* ================= Helpers ================= */
     const $ = (s, r = document) => r.querySelector(s);
@@ -3556,7 +3558,7 @@
             <div class="set-row"><div class="lbl"><b>App version ${APP_VERSION}</b><span id="update-status">Updates install automatically when you're online</span></div>
               <button class="btn btn-sm" data-action="check-update">Check for updates</button></div>
             <div class="set-row"><div class="lbl"><b>Works offline</b><span id="offline-status">Checking…</span></div><span id="offline-dot" class="sdot"></span></div>
-            <div class="set-row"><div class="lbl"><b>Your progress</b><span>${learned} questions right · ${passed} chapter exam${passed === 1 ? '' : 's'} passed · ${Store.liveStreak()}-day streak</span></div></div>
+            <div class="set-row"><div class="lbl"><b>Your progress</b><span>${learned} question${learned === 1 ? '' : 's'} right ·${passed} chapter exam${passed === 1 ? '' : 's'} passed · ${Store.liveStreak()}-day streak</span></div></div>
             <div class="set-row"><div class="lbl"><b>Back up progress</b><span>Save a file, or restore from one on another device</span></div>
               <div class="btn-row"><button class="btn btn-sm" data-action="export">Export</button><button class="btn btn-sm" data-action="import">Import</button></div></div>
             <div class="set-row"><div class="lbl"><b>Reset everything</b><span>Clears lessons, scores, exams and streak</span></div>
@@ -3644,7 +3646,7 @@
       },
       async checkOffline() {
         const set = (ok, msg) => { const t = $('#offline-status'), d = $('#offline-dot'); if (!t) return; t.textContent = msg; d.style.background = ok ? 'var(--ok)' : 'var(--bad)'; };
-        if (!('serviceWorker' in navigator) || location.protocol !== 'https:') return set(false, 'Only works from the web link');
+        if (!('serviceWorker' in navigator) || !canGoOffline) return set(false, 'Only works from the web link');
         try {
           const reg = await navigator.serviceWorker.getRegistration();
           const keys = window.caches ? await caches.keys() : [];
@@ -3719,7 +3721,7 @@
     window.addEventListener('appinstalled', () => { app.installPrompt = null; app.renderInstallBtn(); });
 
     // Offline support + updates (only works when served over https, e.g. GitHub Pages)
-    if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    if ('serviceWorker' in navigator && canGoOffline) {
       window.addEventListener('load', () => {
         const firstInstall = !navigator.serviceWorker.controller;
         // iPhone keeps home-screen apps suspended instead of reloading them,
